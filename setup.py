@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_namespace_packages
 
-FRAMEWORK_NAME = 'example'
+FRAMEWORK_NAME = 'fedscale'
 
 setup(name=f'colink-unifed-{FRAMEWORK_NAME}',
       version='0.0',
@@ -16,6 +16,6 @@ setup(name=f'colink-unifed-{FRAMEWORK_NAME}',
       entry_points={
           'console_scripts': [
               f'unifed-{FRAMEWORK_NAME} = unifed.frameworks.{FRAMEWORK_NAME}:run_protocol',
-          ] + ([] if FRAMEWORK_NAME != 'example' else ["unifed-example-workload = unifed.frameworks.example:simulate_workload"]),
+          ] + ([f'unifed-{FRAMEWORK_NAME}-workload = unifed.frameworks.{FRAMEWORK_NAME}:simulate_workload'] if FRAMEWORK_NAME != 'example' else ["unifed-example-workload = unifed.frameworks.example:simulate_workload"]),
       }
       )

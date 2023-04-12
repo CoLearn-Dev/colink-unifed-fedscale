@@ -1,18 +1,18 @@
 [package]
-name = "unifed-example"
+name = "unifed-fedscale"
 version = "0.0.0"
 keywords = ["federated learning", "machine learning"]
-description = "Example UniFed protocol."
+description = "FedScale"
 language = "python"
 install_script = """
-if { conda env list | grep 'colink-protocol-unifed-example'; } >/dev/null 2>&1; then
-    conda env remove -n colink-protocol-unifed-example
+if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1; then
+    conda env remove -n colink-protocol-unifed-fedscale
 fi
-conda create -n colink-protocol-unifed-example python=3.9 -y
-conda activate colink-protocol-unifed-example
+conda create -n colink-protocol-unifed-fedscale python=3.9 -y
+conda activate colink-protocol-unifed-fedscale
 pip install .
 """
 entrypoint = """
-conda activate colink-protocol-unifed-example
-unifed-example
+conda activate colink-protocol-unifed-fedscale
+unifed-fedscale
 """

@@ -1,7 +1,7 @@
 {
-  "framework": "example",
+  "framework": "fedscale",
   "algorithm": "fedavg",
-  "dataset": "default_credit_horizontal",
+  "dataset": "give_credit_horizontal",
   "model": "mlp_128",
   "deployment": {
     "mode": "colink",
@@ -15,14 +15,6 @@
         "client"
       ],
       [
-        "0349b8bff5ee389899319b1f6171016de95faed0179cce89521b5a066e3d8f5e2d",
-        "client"
-      ],
-      [
-        "0230eb8c64afe6aeed0d80248a0cdd0ebb92a8bbc9fb49421c0156ae55b6d5fe1d",
-        "client"
-      ],
-      [
         "03b983ea4fbe9de3b8f13eb9503f6c1623386394aec76f0ed8b6572e9bfa376cdc",
         "client"
       ]
@@ -31,8 +23,10 @@
   "training": {
     "epochs": 30,
     "batch_size": 32,
+    "inner_step": 1,
     "learning_rate": 0.01,
     "client_per_round": 2,
+    "loss_func": "cross_entropy",
     "optimizer": "sgd",
     "optimizer_param": {
       "momentum": 0.9,
