@@ -321,12 +321,16 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # stdout, stderr = process.communicate()
     # returncode = process.returncode
 
+    process_debug1 = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout_debug1, stderr_debug1 = process_debug1.communicate()
+    returncode_debug1 = process_debug1.returncode
+
     process_debug = subprocess.Popen(f'cat give_credit_horizontal+mlp_128_logging',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_debug, stderr_debug = process_debug.communicate()
     returncode_debug = process_debug.returncode
 
-    output = stdout_debug
-    log = stderr_debug
+    output = stdout_debug1 + stdout_debug
+    log = stderr_debug1 + stderr_debug
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
     return json.dumps({
