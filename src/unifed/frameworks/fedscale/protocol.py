@@ -156,7 +156,7 @@ def process_cmd_server(json_conf, local=False):
             
     return time_stamp, ps_cmd , submit_user, ps_ip, setup_cmd
 
-def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filename, temp_log_filename, local=False):
+def process_cmd_client(participant_id, json_conf, time_stamp, local=False):
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
 
@@ -271,7 +271,7 @@ def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filena
 
     print(f"Submitted job!")
 
-    return 
+    return "client end!"
 
 
 @pop.handle("unifed.fedscale:server")
@@ -289,33 +289,26 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # run external program
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     
-    with GetTempFileName() as temp_log_filename, \
-        GetTempFileName() as temp_output_filename:
-        # note that here, you don't have to create temp files to receive output and log
-        # you can also expect the target process to generate files and then read them
 
+    time_stamp, ps_cmd, submit_user, ps_ip, setup_cmd = process_cmd_server(Config)
 
-        time_stamp, ps_cmd, submit_user, ps_ip, setup_cmd = process_cmd_server(Config)
+    cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-        cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
+    # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    returncode = process.returncode
 
-        # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        returncode = process.returncode
-
-        with open(temp_output_filename, "rb") as f:
-            output = f.read()
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-        with open(temp_log_filename, "rb") as f:
-            log = f.read()
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", ps_cmd)
-        return json.dumps({
-            "server_ip": server_ip,
-            "stdout": stdout.decode(),
-            "stderr": stderr.decode(),
-            "returncode": returncode,
-        })
+    output = stdout
+    log = stderr
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+    return json.dumps({
+        "server_ip": server_ip,
+        "stdout": stdout.decode(),
+        "stderr": stderr.decode(),
+        "returncode": returncode,
+    })
 
 
 @pop.handle("unifed.fedscale:client")
@@ -338,19 +331,13 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
     
-    with GetTempFileName() as temp_log_filename, \
-        GetTempFileName() as temp_output_filename:
-        # note that here, you don't have to create temp files to receive output and log
-        # you can also expect the target process to generate files and then read them
 
-        process_cmd_client(participant_id, Config, time_stamp, temp_output_filename, temp_log_filename)
+    output = process_cmd_client(participant_id, Config, time_stamp)
 
-        with open(temp_output_filename, "rb") as f:
-            output = f.read()
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-        with open(temp_log_filename, "rb") as f:
-            log = f.read()
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
-        return json.dumps({
-            "server_ip": server_ip,
-        })
+    log =  f"participant_id:{participant_id}"
+
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+    return json.dumps({
+        "server_ip": server_ip,
+    })
