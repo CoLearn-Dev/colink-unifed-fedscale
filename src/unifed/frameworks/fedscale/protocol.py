@@ -290,7 +290,8 @@ def process_cmd_client(participant_id, json_conf, time_stamp, local=False):
 
     print(f"Submitted job!")
 
-    return stdout, stderr
+    return 
+
 
 
 @pop.handle("unifed.fedscale:server")
@@ -354,7 +355,10 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print(f"participant_id:{participant_id}")
     
 
-    output, log = process_cmd_client(participant_id, Config, time_stamp)
+    process_cmd_client(participant_id, Config, time_stamp)
+
+    output = f"time_stamp:{time_stamp}"
+    log = f"time_stamp:{time_stamp}"
 
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
