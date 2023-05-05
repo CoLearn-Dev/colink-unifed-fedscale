@@ -306,7 +306,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
         with open(temp_log_filename, "rb") as f:
             log = f.read()
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", ps_cmd)
         return json.dumps({
             "server_ip": server_ip,
             'ps_cmd': ps_cmd,
