@@ -268,30 +268,10 @@ def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filena
         if use_container == "default":
             print(f"Starting workers on {worker} ...")
 
-        for cuda_id in range(len(gpu)):
-            for _ in range(gpu[cuda_id]):
-                worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
-                if job_conf['use_cuda'] == True:
-                    worker_cmd += f" --cuda_device=cuda:{cuda_id}"
-
-                time.sleep(2)
-                if rank_id == participant_id:
-                    print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
-                    with open(temp_output_filename, "wb") as fout:
-                        if local:
-                            process = subprocess.Popen(f'{worker_cmd}',
-                                                shell=True, stdout=fout, stderr=fout)
-                        else:
-                            process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
-                                shell=True, stdout=fout, stderr=fout)
-                            stdout,stderr = process.communicate()
-                            returncode = process.returncode
-                rank_id += 1
-
 
     print(f"Submitted job!")
 
-    return stdout,stderr,returncode
+    return 
 
 
 @pop.handle("unifed.fedscale:server")
@@ -320,10 +300,6 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
         # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        stdout, stderr = process.communicate()
-        returncode = process.returncode
 
         with open(temp_output_filename, "rb") as f:
             output = f.read()
@@ -333,9 +309,6 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
-            "stdout": stdout.decode(),
-            "stderr": stderr.decode(),
-            "returncode": returncode,
         })
 
 
@@ -364,7 +337,7 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         # note that here, you don't have to create temp files to receive output and log
         # you can also expect the target process to generate files and then read them
 
-        stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, temp_output_filename, temp_log_filename)
+        process_cmd_client(participant_id, Config, time_stamp, temp_output_filename, temp_log_filename)
 
         with open(temp_output_filename, "rb") as f:
             output = f.read()
@@ -374,7 +347,4 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
-            "stdout": stdout.decode(),
-            "stderr": stderr.decode(),
-            "returncode": returncode,
         })
