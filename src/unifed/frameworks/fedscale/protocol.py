@@ -301,6 +301,8 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
         # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        returncode = process.returncode
 
         with open(temp_output_filename, "rb") as f:
             output = f.read()
