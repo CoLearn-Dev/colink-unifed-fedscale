@@ -29,5 +29,5 @@ pip install -e .
 """
 entrypoint = """
 conda activate colink-protocol-unifed-fedscale
-unifed-fedscale
+unifed-fedscale > debug.txt 2>&1
 """
