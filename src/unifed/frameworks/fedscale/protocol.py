@@ -14,7 +14,7 @@ import flbenchmark.logging
 
 import colink as CL
 
-from unifed.frameworks.example.util import store_error, store_return, GetTempFileName, get_local_ip
+from unifed.frameworks.fedscale.util import store_error, store_return, GetTempFileName, get_local_ip
 
 pop = CL.ProtocolOperator(__name__)
 UNIFED_TASK_DIR = "unifed:task"

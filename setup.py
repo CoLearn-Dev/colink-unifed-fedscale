@@ -16,6 +16,6 @@ setup(name=f'colink-unifed-{FRAMEWORK_NAME}',
       entry_points={
           'console_scripts': [
               f'unifed-{FRAMEWORK_NAME} = unifed.frameworks.{FRAMEWORK_NAME}:run_protocol',
-          ] + ([f'unifed-{FRAMEWORK_NAME}-workload = unifed.frameworks.{FRAMEWORK_NAME}:simulate_workload'] if FRAMEWORK_NAME != 'example' else ["unifed-example-workload = unifed.frameworks.example:simulate_workload"]),
+          ],
       }
       )
