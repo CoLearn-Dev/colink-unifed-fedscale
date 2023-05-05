@@ -268,24 +268,24 @@ def process_cmd_client(participant_id, json_conf, time_stamp, local=False):
         if use_container == "default":
             print(f"Starting workers on {worker} ...")
 
-        for cuda_id in range(len(gpu)):
-            for _ in range(gpu[cuda_id]):
-                worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
-                if job_conf['use_cuda'] == True:
-                    worker_cmd += f" --cuda_device=cuda:{cuda_id}"
+        # for cuda_id in range(len(gpu)):
+        #     for _ in range(gpu[cuda_id]):
+        #         worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
+        #         if job_conf['use_cuda'] == True:
+        #             worker_cmd += f" --cuda_device=cuda:{cuda_id}"
 
-                time.sleep(2)
-                if rank_id == participant_id:
-                    print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
-                    if local:
-                        process = subprocess.Popen(f'{worker_cmd}',
-                                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    else:
-                        process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
-                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    stdout,stderr = process.communicate()
-                    returncode = process.returncode
-                rank_id += 1
+        #         time.sleep(2)
+        #         if rank_id == participant_id:
+        #             print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
+        #             if local:
+        #                 process = subprocess.Popen(f'{worker_cmd}',
+        #                                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #             else:
+        #                 process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
+        #                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #             stdout,stderr = process.communicate()
+        #             returncode = process.returncode
+        #         rank_id += 1
 
 
     print(f"Submitted job!")
@@ -315,10 +315,10 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    stdout, stderr = process.communicate()
-    returncode = process.returncode
+    # stdout, stderr = process.communicate()
+    # returncode = process.returncode
 
     process_debug = subprocess.Popen(f'cat debug.txt',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_debug, stderr_debug = process_debug.communicate()
