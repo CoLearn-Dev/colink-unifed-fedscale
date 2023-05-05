@@ -309,6 +309,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
+            'ps_cmd': ps_cmd,
         })
 
 
