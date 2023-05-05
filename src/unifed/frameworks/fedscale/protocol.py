@@ -320,7 +320,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # stdout, stderr = process.communicate()
     # returncode = process.returncode
 
-    process_debug = subprocess.Popen(f'cat debug.txt',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process_debug = subprocess.Popen(f'cat give_credit_horizontal+mlp_128_logging',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout_debug, stderr_debug = process_debug.communicate()
     returncode_debug = process_debug.returncode
 
