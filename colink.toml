@@ -5,11 +5,6 @@ keywords = ["federated learning", "machine learning"]
 description = "FedScale"
 language = "python"
 install_script = """
-if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1; then
-    conda env remove -n colink-protocol-unifed-fedscale
-fi
-conda create -n colink-protocol-unifed-fedscale python=3.9 -y
-conda activate colink-protocol-unifed-fedscale
 
 git clone https://github.com/xmhuangzhen/FedScale.git
 cd FedScale
@@ -17,6 +12,13 @@ git checkout 0328update
 source ./install.sh
 pip install -e .
 cd ..
+
+if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1; then
+    conda env remove -n colink-protocol-unifed-fedscale
+fi
+conda create -n colink-protocol-unifed-fedscale python=3.9 -y
+conda activate colink-protocol-unifed-fedscale
+
 
 pip install --upgrade pip
 pip install flbenchmark
