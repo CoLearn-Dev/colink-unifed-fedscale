@@ -25,6 +25,7 @@ pip install flbenchmark
 pip install nest_asyncio
 pip install pyyaml
 pip install colink
+pip install wandb
 pip install pytest
 pip install -e .
  

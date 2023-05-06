@@ -59,6 +59,6 @@ if __name__ == "__main__":
     from pprint import pprint
     import time
     nw = time.time()
-    target_case = "test/configs/example_unifed_config.json"
+    target_case = "test/configs/case_0.json"
     print(json.dumps(simulate_with_config(target_case), indent=2))
     print("Time elapsed:", time.time() - nw)
