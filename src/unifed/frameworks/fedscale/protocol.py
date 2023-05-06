@@ -51,7 +51,7 @@ def load_json_conf(json_file):
     return data
 
 def process_cmd_server(json_conf, local=False):
-    yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': './FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
+    yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': '~/colink-unifed-fedscale/FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
     print("process_cmd_server start")
     use_container = "default"
@@ -156,11 +156,11 @@ def process_cmd_server(json_conf, local=False):
             
     return time_stamp, ps_cmd , submit_user, ps_ip, setup_cmd
 
-def process_cmd_client(participant_id, json_conf, time_stamp, local=False):
+def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filename, temp_log_filename, local=False):
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
 
-    yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': './FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
+    yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': '~/colink-unifed-fedscale/FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
     if 'use_container' in yaml_conf:
         if yaml_conf['use_container'] == "docker":
@@ -268,30 +268,30 @@ def process_cmd_client(participant_id, json_conf, time_stamp, local=False):
         if use_container == "default":
             print(f"Starting workers on {worker} ...")
 
-        # for cuda_id in range(len(gpu)):
-        #     for _ in range(gpu[cuda_id]):
-        #         worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
-        #         if job_conf['use_cuda'] == True:
-        #             worker_cmd += f" --cuda_device=cuda:{cuda_id}"
+        for cuda_id in range(len(gpu)):
+            for _ in range(gpu[cuda_id]):
+                worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
+                if job_conf['use_cuda'] == True:
+                    worker_cmd += f" --cuda_device=cuda:{cuda_id}"
 
-        #         time.sleep(2)
-        #         if rank_id == participant_id:
-        #             print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
-        #             if local:
-        #                 process = subprocess.Popen(f'{worker_cmd}',
-        #                                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #             else:
-        #                 process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
-        #                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #             stdout,stderr = process.communicate()
-        #             returncode = process.returncode
-        #         rank_id += 1
+                time.sleep(2)
+                if rank_id == participant_id:
+                    print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
+                    with open(temp_output_filename, "wb") as fout:
+                        if local:
+                            process = subprocess.Popen(f'{worker_cmd}',
+                                                shell=True, stdout=fout, stderr=fout)
+                        else:
+                            process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
+                                shell=True, stdout=fout, stderr=fout)
+                            stdout,stderr = process.communicate()
+                            returncode = process.returncode
+                rank_id += 1
 
 
     print(f"Submitted job!")
 
-    return 
-
+    return stdout,stderr,returncode
 
 
 @pop.handle("unifed.fedscale:server")
@@ -309,37 +309,34 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # run external program
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     
+    with GetTempFileName() as temp_log_filename, \
+        GetTempFileName() as temp_output_filename:
+        # note that here, you don't have to create temp files to receive output and log
+        # you can also expect the target process to generate files and then read them
 
-    time_stamp, ps_cmd, submit_user, ps_ip, setup_cmd = process_cmd_server(Config)
 
-    cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
+        time_stamp, ps_cmd, submit_user, ps_ip, setup_cmd = process_cmd_server(Config)
 
-    # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-    process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    stdout, stderr = process.communicate()
-    returncode = process.returncode
+        stdout, stderr = process.communicate()
+        returncode = process.returncode
 
-    # process_debug1 = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # stdout_debug1, stderr_debug1 = process_debug1.communicate()
-    # returncode_debug1 = process_debug1.returncode
-
-    process_debug = subprocess.Popen(f'cat give_credit_horizontal+mlp_128_logging',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout_debug, stderr_debug = process_debug.communicate()
-    returncode_debug = process_debug.returncode
-
-    # output = stdout_debug1 + stdout_debug
-    # log = stderr_debug1 + stderr_debug
-
-    output = stdout + stdout_debug
-    log = stderr + stderr_debug
-
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
-    return json.dumps({
-        "server_ip": server_ip,
-    })
+        with open(temp_output_filename, "rb") as f:
+            output = f.read()
+        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+        with open(temp_log_filename, "rb") as f:
+            log = f.read()
+        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+        return json.dumps({
+            "server_ip": server_ip,
+            "stdout": stdout.decode(),
+            "stderr": stderr.decode(),
+            "returncode": returncode,
+        })
 
 
 @pop.handle("unifed.fedscale:client")
@@ -362,21 +359,22 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
     
+    with GetTempFileName() as temp_log_filename, \
+        GetTempFileName() as temp_output_filename:
+        # note that here, you don't have to create temp files to receive output and log
+        # you can also expect the target process to generate files and then read them
 
-    process_cmd_client(participant_id, Config, time_stamp)
+        stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, temp_output_filename, temp_log_filename)
 
-    process_debug = subprocess.Popen(f'cat give_credit_horizontal+mlp_128_logging',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout_debug, stderr_debug = process_debug.communicate()
-    returncode_debug = process_debug.returncode
-
-    # output = stdout_debug1 + stdout_debug
-    # log = stderr_debug1 + stderr_debug
-
-    output = stdout_debug
-    log = stderr_debug
-
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
-    return json.dumps({
-        "server_ip": server_ip,
-    })
+        with open(temp_output_filename, "rb") as f:
+            output = f.read()
+        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+        with open(temp_log_filename, "rb") as f:
+            log = f.read()
+        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+        return json.dumps({
+            "server_ip": server_ip,
+            "stdout": stdout.decode(),
+            "stderr": stderr.decode(),
+            "returncode": returncode,
+        })
