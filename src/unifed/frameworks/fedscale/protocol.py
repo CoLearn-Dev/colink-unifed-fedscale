@@ -156,7 +156,7 @@ def process_cmd_server(json_conf, local=False):
             
     return time_stamp, ps_cmd , submit_user, ps_ip, setup_cmd
 
-def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filename, temp_log_filename, local=False):
+def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filename, temp_log_filename, local=True):
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
 
@@ -319,8 +319,8 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
         cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-        # process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = process.communicate()
         returncode = process.returncode
