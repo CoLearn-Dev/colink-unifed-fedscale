@@ -1,27 +1,8 @@
 {
   "framework": "fedscale",
   "algorithm": "fedavg",
-  "dataset": "give_credit_horizontal",
-  "model": "mlp_128",
-  "deployment": {
-    "mode": "colink",
-    "participants": [
-      [
-        "0236f00d8e378b20634c901acfe004f0f85f5cdd7fa6377dab79e093bc62eabf9c",
-        "server"
-      ],
-      [
-        "0261bff483acdeb79ff332f003249cb8e303896487509c670ab3fc84c00acb16fd",
-        "client"
-      ],
-      [
-        "03b983ea4fbe9de3b8f13eb9503f6c1623386394aec76f0ed8b6572e9bfa376cdc",
-        "client"
-      ]
-    ]
-  },
   "training": {
-    "epochs": 30,
+    "epochs": 1,
     "batch_size": 32,
     "inner_step": 1,
     "learning_rate": 0.01,
@@ -34,5 +15,24 @@
       "weight_decay": 0,
       "nesterov": false
     }
+  },
+  "dataset": "give_credit_horizontal",
+  "model": "mlp_128",
+  "deployment": {
+    "mode": "colink",
+    "participants": [
+      {
+        "user_id": "0236f00d8e378b20634c901acfe004f0f85f5cdd7fa6377dab79e093bc62eabf9c",
+        "role": "server"
+      },
+      {
+        "user_id": "0261bff483acdeb79ff332f003249cb8e303896487509c670ab3fc84c00acb16fd",
+        "role": "client"
+      },
+      {
+        "user_id": "0349b8bff5ee389899319b1f6171016de95faed0179cce89521b5a066e3d8f5e2d",
+        "role": "client"
+      }
+    ]
   }
 }
