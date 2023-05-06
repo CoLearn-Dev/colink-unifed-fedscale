@@ -288,7 +288,6 @@ def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filena
                             returncode = process.returncode
                 rank_id += 1
 
-    print(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"')
     print(f"Submitted job!")
 
     return stdout,stderr,returncode

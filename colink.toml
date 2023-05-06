@@ -6,6 +6,11 @@ description = "FedScale"
 language = "python"
 install_script = """
 
+if { conda env list | grep 'fedscale'; } >/dev/null 2>&1; then
+    conda env remove -n fedscale
+fi
+
+
 git clone https://github.com/xmhuangzhen/FedScale.git
 cd FedScale
 git checkout 0328update
