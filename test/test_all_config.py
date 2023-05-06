@@ -13,11 +13,11 @@ def simulate_with_config(config_file_path):
         config = json.load(cf)
     # use instant server for simulation
     ir = CL.InstantRegistry()
-    # TODO: confirm the format of `participants``
     config_participants = config["deployment"]["participants"]
     cls = []
     participants = []
-    for _, role in config_participants:  # given user_ids are omitted and we generate new ones here
+    for p in config_participants:  # given user_ids are omitted and we generate new ones here
+        role = p["role"]
         cl = CL.InstantServer().get_colink().switch_to_generated_user()
         pop.run_attach(cl)
         participants.append(CL.Participant(user_id=cl.get_user_id(), role=role))
@@ -59,6 +59,6 @@ if __name__ == "__main__":
     from pprint import pprint
     import time
     nw = time.time()
-    target_case = "test/configs/case_0.json"
+    target_case = "test/configs/example_unifed_config.json"
     print(json.dumps(simulate_with_config(target_case), indent=2))
     print("Time elapsed:", time.time() - nw)
