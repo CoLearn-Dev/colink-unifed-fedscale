@@ -6,6 +6,10 @@ description = "FedScale"
 language = "python"
 install_script = """
 
+FEDSCALE_HOME=$(pwd)
+echo export FEDSCALE_HOME=$(pwd) >> ~/.bashrc
+echo alias fedscale=\'bash ${FEDSCALE_HOME}/fedscale.sh\' >> ~/.bashrc
+
 if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1; then
     conda env remove -n colink-protocol-unifed-fedscale
 fi

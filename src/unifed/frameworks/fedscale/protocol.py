@@ -284,8 +284,8 @@ def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filena
                         else:
                             process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
                                 shell=True, stdout=fout, stderr=fout)
-                            stdout,stderr = process.communicate()
-                            returncode = process.returncode
+                        stdout,stderr = process.communicate()
+                        returncode = process.returncode
                 rank_id += 1
 
     print(f"Submitted job!")
