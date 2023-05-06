@@ -324,16 +324,24 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         stdout, stderr = process.communicate()
         returncode = process.returncode
 
+
+        process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout_debug, stderr_debug = process_debug.communicate()
+        returncode_debug = process_debug.returncode
+
         with open(temp_output_filename, "rb") as f:
             output = f.read()
+        output = output + stdout_debug + stdout
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
         with open(temp_log_filename, "rb") as f:
             log = f.read()
+        log = log + stderr_debug + stderr
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
-            "stdout": stdout.decode(),
-            "stderr": stderr.decode(),
+            "stdout": output.decode(),
+            "stderr": log.decode(),
             "returncode": returncode,
         })
 
@@ -365,15 +373,22 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
         stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, temp_output_filename, temp_log_filename)
 
+        process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout_debug, stderr_debug = process_debug.communicate()
+        returncode_debug = process_debug.returncode
+
         with open(temp_output_filename, "rb") as f:
             output = f.read()
+        output = output + stdout_debug + stdout
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
         with open(temp_log_filename, "rb") as f:
             log = f.read()
+        log = log + stderr_debug + stderr
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
-            "stdout": stdout.decode(),
-            "stderr": stderr.decode(),
+            "stdout": output.decode(),
+            "stderr": log.decode(),
             "returncode": returncode,
         })
