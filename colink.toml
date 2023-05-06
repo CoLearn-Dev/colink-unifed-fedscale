@@ -11,10 +11,14 @@ if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1;
 fi
 
 git clone https://github.com/xmhuangzhen/FedScale.git
+
+conda init bash
+. ~/.bashrc
+conda env create -f environment.yml
+conda activate colink-protocol-unifed-fedscale
+
 cd FedScale
 git checkout 0328update
-conda env create -f environment.yml -y
-conda activate colink-protocol-unifed-fedscale
 pip install -e .
 cd ..
 
