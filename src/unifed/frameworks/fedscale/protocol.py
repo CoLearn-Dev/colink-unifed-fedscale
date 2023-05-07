@@ -156,7 +156,7 @@ def process_cmd_server(json_conf, server_ip, local=False):
             
     return time_stamp, ps_cmd , submit_user, setup_cmd
 
-def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, temp_output_filename, temp_log_filename, local=False):
+def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=False):
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
 
@@ -277,22 +277,18 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, temp_ou
                 time.sleep(2)
                 if rank_id == participant_id:
                     print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
-                    with open(temp_output_filename, "wb") as fout:
-                        if local:
-                            process = subprocess.Popen(f'{worker_cmd}',
-                                                shell=True, stdout=fout, stderr=fout)
-                        else:
-                            process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
-                                shell=True, stdout=fout, stderr=fout)
-                        stdout,stderr = process.communicate()
-                        returncode = process.returncode
+                    if local:
+                        process = subprocess.Popen(f'{worker_cmd}',
+                                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    else:
+                        process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
+                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout,stderr = process.communicate()
+                    returncode = process.returncode
                 rank_id += 1
 
     print(f"Submitted job!")
 
-    stdout=""
-    stderr=""
-    returncode=""
     return stdout,stderr,returncode
 
 
@@ -311,48 +307,38 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # run external program
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     
-    with GetTempFileName() as temp_log_filename, \
-        GetTempFileName() as temp_output_filename:
-        # note that here, you don't have to create temp files to receive output and log
-        # you can also expect the target process to generate files and then read them
+    time_stamp, ps_cmd, submit_user, setup_cmd = process_cmd_server(Config)
+
+    cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
+
+    process = subprocess.Popen(f'ssh {submit_user}{server_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    stdout, stderr = process.communicate()
+    returncode = process.returncode
 
 
-        time_stamp, ps_cmd, submit_user, setup_cmd = process_cmd_server(Config)
+    # process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
+    # stdout_debug, stderr_debug = process_debug.communicate()
+    # returncode_debug = process_debug.returncode
 
-        process = subprocess.Popen(f'ssh {submit_user}{server_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        stdout, stderr = process.communicate()
-        returncode = process.returncode
+    # stdout_debug2, stderr_debug2 = process_debug2.communicate()
+    # returncode_debug2 = process_debug2.returncode
 
+    output = "server:" + stdout
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+    log = "server:" + stderr
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
 
-        process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        stdout_debug, stderr_debug = process_debug.communicate()
-        returncode_debug = process_debug.returncode
-
-        process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        stdout_debug2, stderr_debug2 = process_debug2.communicate()
-        returncode_debug2 = process_debug2.returncode
-
-        with open(temp_output_filename, "rb") as f:
-            output = f.read()
-        output = output + stdout_debug + stdout_debug2
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-        with open(temp_log_filename, "rb") as f:
-            log = f.read()
-        log = log + stderr_debug + stderr_debug2
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
-
-        
-        return json.dumps({
-            "server_ip": server_ip,
-            "stdout": output.decode(),
-            "stderr": log.decode(),
-            "returncode": returncode,
-        })
+    
+    return json.dumps({
+        "server_ip": server_ip,
+        "stdout": output.decode(),
+        "stderr": log.decode(),
+        "returncode": returncode,
+    })
 
 
 @pop.handle("unifed.fedscale:client")
@@ -375,35 +361,27 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
     
-    with GetTempFileName() as temp_log_filename, \
-        GetTempFileName() as temp_output_filename:
-        # note that here, you don't have to create temp files to receive output and log
-        # you can also expect the target process to generate files and then read them
 
-        stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip, temp_output_filename, temp_log_filename)
+    stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
-        process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        stdout_debug, stderr_debug = process_debug.communicate()
-        returncode_debug = process_debug.returncode
+    # stdout_debug, stderr_debug = process_debug.communicate()
+    # returncode_debug = process_debug.returncode
 
-        process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        stdout_debug2, stderr_debug2 = process_debug2.communicate()
-        returncode_debug2 = process_debug2.returncode
+    # stdout_debug2, stderr_debug2 = process_debug2.communicate()
+    # returncode_debug2 = process_debug2.returncode
 
 
-        with open(temp_output_filename, "rb") as f:
-            output = f.read()
-        output = output + stdout_debug + stdout + stdout_debug2
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-        with open(temp_log_filename, "rb") as f:
-            log = f.read()
-        log = log + stderr_debug + stderr + stderr_debug2
-        cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
-        return json.dumps({
-            "server_ip": server_ip,
-            "stdout": output.decode(),
-            "stderr": log.decode(),
-            "returncode": returncode,
-        })
+    output = "client:"  + stdout
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+    log = "client:" + stderr
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+    return json.dumps({
+        "server_ip": server_ip,
+        "stdout": output.decode(),
+        "stderr": log.decode(),
+        "returncode": returncode,
+    })
