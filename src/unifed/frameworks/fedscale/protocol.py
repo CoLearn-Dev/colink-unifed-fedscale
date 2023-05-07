@@ -262,7 +262,7 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
                 if rank_id == participant_id:
                     print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
                     if local:
-                        process = subprocess.Popen(f'ls ~',
+                        process = subprocess.Popen(f'ls ~/flbenchmark.working/data',
                                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     else:
                         process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
@@ -295,7 +295,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-    process = subprocess.Popen(f'ls ~',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'ls ~/flbenchmark.working/data',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
