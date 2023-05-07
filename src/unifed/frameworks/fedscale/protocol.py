@@ -54,7 +54,6 @@ def process_cmd_server(json_conf, server_ip, local=False):
     yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': './FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
     print("process_cmd_server start")
-    use_container = "default"
 
     ps_ip = server_ip
     worker_ips, total_gpus = [], []
@@ -162,15 +161,6 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=F
 
     yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': './FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
-    if 'use_container' in yaml_conf:
-        if yaml_conf['use_container'] == "docker":
-            use_container = "docker"
-            ports = yaml_conf['ports']
-        else:
-            print(f'Error: unknown use_container:{yaml_conf["use_container"]}, the supported options are ["docker", "k8s"].')
-            exit(1)
-    else:
-        use_container = "default"
 
     ps_ip = server_ip
     worker_ips, total_gpus = [], []
@@ -255,18 +245,12 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=F
 
     total_gpu_processes = sum([sum(x) for x in total_gpus])
 
-    # error checking
-    if use_container == "docker" and total_gpu_processes + 1 != len(ports):
-        print(f'Error: there are {total_gpu_processes + 1} processes but {len(ports)} ports mapped, please check your config file')
-        exit(1)
-
     # =========== Submit job to each worker ============
     rank_id = 1
     for worker, gpu in zip(worker_ips, total_gpus):
         running_vms.add(worker)
 
-        if use_container == "default":
-            print(f"Starting workers on {worker} ...")
+        print(f"Starting workers on {worker} ...")
 
         for cuda_id in range(len(gpu)):
             for _ in range(gpu[cuda_id]):
@@ -316,17 +300,6 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     stdout, stderr = process.communicate()
     returncode = process.returncode
 
-
-    # process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    # stdout_debug, stderr_debug = process_debug.communicate()
-    # returncode_debug = process_debug.returncode
-
-    # process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    # stdout_debug2, stderr_debug2 = process_debug2.communicate()
-    # returncode_debug2 = process_debug2.returncode
-
     output = "server:" + stdout
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
     log = "server:" + stderr
@@ -356,24 +329,11 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # run external program
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     
-    
     time_stamp = cl.recv_variable("time_stamp", p_server).decode()
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
-    
 
     stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip)
-
-    # process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    # stdout_debug, stderr_debug = process_debug.communicate()
-    # returncode_debug = process_debug.returncode
-
-    # process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    # stdout_debug2, stderr_debug2 = process_debug2.communicate()
-    # returncode_debug2 = process_debug2.returncode
-
 
     output = "client:"  + stdout
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
