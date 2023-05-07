@@ -261,35 +261,38 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, temp_ou
         exit(1)
 
     # =========== Submit job to each worker ============
-    rank_id = 1
-    for worker, gpu in zip(worker_ips, total_gpus):
-        running_vms.add(worker)
+    # rank_id = 1
+    # for worker, gpu in zip(worker_ips, total_gpus):
+    #     running_vms.add(worker)
 
-        if use_container == "default":
-            print(f"Starting workers on {worker} ...")
+    #     if use_container == "default":
+    #         print(f"Starting workers on {worker} ...")
 
-        for cuda_id in range(len(gpu)):
-            for _ in range(gpu[cuda_id]):
-                worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
-                if job_conf['use_cuda'] == True:
-                    worker_cmd += f" --cuda_device=cuda:{cuda_id}"
+    #     for cuda_id in range(len(gpu)):
+    #         for _ in range(gpu[cuda_id]):
+    #             worker_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['executor_entry']} {conf_script} --this_rank={rank_id} --num_executors={total_gpu_processes} "
+    #             if job_conf['use_cuda'] == True:
+    #                 worker_cmd += f" --cuda_device=cuda:{cuda_id}"
 
-                time.sleep(2)
-                if rank_id == participant_id:
-                    print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
-                    with open(temp_output_filename, "wb") as fout:
-                        if local:
-                            process = subprocess.Popen(f'{worker_cmd}',
-                                                shell=True, stdout=fout, stderr=fout)
-                        else:
-                            process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
-                                shell=True, stdout=fout, stderr=fout)
-                        stdout,stderr = process.communicate()
-                        returncode = process.returncode
-                rank_id += 1
+    #             time.sleep(2)
+    #             if rank_id == participant_id:
+    #                 print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
+    #                 with open(temp_output_filename, "wb") as fout:
+    #                     if local:
+    #                         process = subprocess.Popen(f'{worker_cmd}',
+    #                                             shell=True, stdout=fout, stderr=fout)
+    #                     else:
+    #                         process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
+    #                             shell=True, stdout=fout, stderr=fout)
+    #                     stdout,stderr = process.communicate()
+    #                     returncode = process.returncode
+    #             rank_id += 1
 
     print(f"Submitted job!")
 
+    stdout=""
+    stderr=""
+    returncode=""
     return stdout,stderr,returncode
 
 
@@ -318,10 +321,10 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
         cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-        process = subprocess.Popen(f'ssh {submit_user}{server_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # process = subprocess.Popen(f'ssh {submit_user}{server_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        stdout, stderr = process.communicate()
-        returncode = process.returncode
+        # stdout, stderr = process.communicate()
+        # returncode = process.returncode
 
 
         process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -329,13 +332,18 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         stdout_debug, stderr_debug = process_debug.communicate()
         returncode_debug = process_debug.returncode
 
+        process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout_debug2, stderr_debug2 = process_debug2.communicate()
+        returncode_debug2 = process_debug2.returncode
+
         with open(temp_output_filename, "rb") as f:
             output = f.read()
-        output = output + stdout_debug + stdout
+        output = output + stdout_debug + stdout_debug2
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
         with open(temp_log_filename, "rb") as f:
             log = f.read()
-        log = log + stderr_debug + stderr
+        log = log + stderr_debug + stderr_debug2
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
@@ -377,13 +385,19 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         stdout_debug, stderr_debug = process_debug.communicate()
         returncode_debug = process_debug.returncode
 
+        process_debug2 = subprocess.Popen(f'cat debug.txt', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout_debug2, stderr_debug2 = process_debug2.communicate()
+        returncode_debug2 = process_debug2.returncode
+
+
         with open(temp_output_filename, "rb") as f:
             output = f.read()
-        output = output + stdout_debug + stdout
+        output = output + stdout_debug + stdout + stdout_debug2
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
         with open(temp_log_filename, "rb") as f:
             log = f.read()
-        log = log + stderr_debug + stderr
+        log = log + stderr_debug + stderr + stderr_debug2
         cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
         return json.dumps({
             "server_ip": server_ip,
