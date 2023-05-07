@@ -23,22 +23,30 @@ def simulate_with_config(config_file_path):
         participants.append(CL.Participant(user_id=cl.get_user_id(), role=role))
         cls.append(cl)
     task_id = cls[0].run_task("unifed.fedscale", json.dumps(config), participants, True)
-    results = {}
-    def G(key):
-        r = cl.read_entry(f"{UNIFED_TASK_DIR}:{task_id}:{key}")
-        if r is not None:
-            if key == "log":
-                return [json.loads(l) for l in r.decode().split("\n") if l != ""]
-            return r.decode() if key != "return" else json.loads(r)
-    for cl in cls:
-        cl.wait_task(task_id)
-        results[cl.get_user_id()] = {
-            "output": G("output"),
-            "log": G("log"),
-            "return": G("return"),
-            "error": G("error"),
-        }
-    return case_name, results
+    cl.wait_task(task_id)
+
+    example_log_from_server = cls[0].read_entry(f"unifed:task:{task_id}:log")
+    print("Log from server:")
+    print(example_log_from_server)
+    example_log_from_client_0 = cls[1].read_entry(f"unifed:task:{task_id}:log")
+    print("Log from client 0:")
+    print(example_log_from_client_0)
+    example_log_from_client_1 = cls[2].read_entry(f"unifed:task:{task_id}:log")
+    print("Log from client 1:")
+    print(example_log_from_client_1)
+
+    example_output_from_server = cls[0].read_entry(f"unifed:task:{task_id}:output")
+    print("Output from server:")
+    print(example_output_from_server)
+    example_output_from_client_0 = cls[1].read_entry(f"unifed:task:{task_id}:output")
+    print("Output from client 0:")
+    print(example_output_from_client_0)
+    example_output_from_client_1 = cls[2].read_entry(f"unifed:task:{task_id}:output")
+    print("Output from client 1:")
+    print(example_output_from_client_1)
+
+
+    return 
 
 
 def test_load_config():
@@ -60,5 +68,5 @@ if __name__ == "__main__":
     import time
     nw = time.time()
     target_case = "test/configs/case_0.json"
-    print(json.dumps(simulate_with_config(target_case), indent=2))
+    simulate_with_config(target_case)
     print("Time elapsed:", time.time() - nw)
