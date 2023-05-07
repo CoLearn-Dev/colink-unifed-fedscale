@@ -1,7 +1,6 @@
 import sys
 
 from unifed.frameworks.fedscale import protocol
-from unifed.frameworks.fedscale.workload_sim import *
 
 
 def run_protocol():

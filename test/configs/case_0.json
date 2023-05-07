@@ -2,7 +2,7 @@
   "framework": "fedscale",
   "algorithm": "fedavg",
   "training": {
-    "epochs": 1,
+    "epochs": 30,
     "batch_size": 32,
     "inner_step": 1,
     "learning_rate": 0.01,

@@ -50,13 +50,13 @@ def load_json_conf(json_file):
         data = json.load(fin)
     return data
 
-def process_cmd_server(json_conf, local=False):
+def process_cmd_server(json_conf, server_ip, local=False):
     yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': './FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
     print("process_cmd_server start")
     use_container = "default"
 
-    ps_ip = yaml_conf['ps_ip']
+    ps_ip = server_ip
     worker_ips, total_gpus = [], []
     cmd_script_list = []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
@@ -154,9 +154,9 @@ def process_cmd_server(json_conf, local=False):
         pass
 
             
-    return time_stamp, ps_cmd , submit_user, ps_ip, setup_cmd
+    return time_stamp, ps_cmd , submit_user, setup_cmd
 
-def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filename, temp_log_filename, local=True):
+def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, temp_output_filename, temp_log_filename, local=False):
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
 
@@ -172,7 +172,7 @@ def process_cmd_client(participant_id, json_conf, time_stamp, temp_output_filena
     else:
         use_container = "default"
 
-    ps_ip = yaml_conf['ps_ip']
+    ps_ip = server_ip
     worker_ips, total_gpus = [], []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
 
@@ -314,12 +314,11 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         # you can also expect the target process to generate files and then read them
 
 
-        time_stamp, ps_cmd, submit_user, ps_ip, setup_cmd = process_cmd_server(Config)
+        time_stamp, ps_cmd, submit_user, setup_cmd = process_cmd_server(Config)
 
         cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-        process = subprocess.Popen(f'{ps_cmd}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # process = subprocess.Popen(f'ssh {submit_user}{ps_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(f'ssh {submit_user}{server_ip} "{setup_cmd} {ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = process.communicate()
         returncode = process.returncode
@@ -371,7 +370,7 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
         # note that here, you don't have to create temp files to receive output and log
         # you can also expect the target process to generate files and then read them
 
-        stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, temp_output_filename, temp_log_filename)
+        stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip, temp_output_filename, temp_log_filename)
 
         process_debug = subprocess.Popen(f'ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
