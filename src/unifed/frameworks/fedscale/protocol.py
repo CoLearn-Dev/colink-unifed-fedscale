@@ -291,7 +291,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # run external program
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     
-    time_stamp, ps_cmd, submit_user, setup_cmd = process_cmd_server(Config)
+    time_stamp, ps_cmd, submit_user, setup_cmd = process_cmd_server(Config, server_ip)
 
     cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
@@ -300,9 +300,9 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     stdout, stderr = process.communicate()
     returncode = process.returncode
 
-    output = "server:" + stdout
+    output = stdout
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-    log = "server:" + stderr
+    log = stderr
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
 
     
@@ -321,23 +321,23 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print("start run client")
     unifed_config = load_config_from_param_and_check(param)
     Config = config_to_FedScale_format(unifed_config)
-    # get the ip of the server
+    
     server_in_list = [p for p in participants if p.role == "server"]
     assert len(server_in_list) == 1
-    p_server = server_in_list[0]
-    server_ip = cl.recv_variable("server_ip", p_server).decode()
-    # run external program
+
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
-    
+    p_server = server_in_list[0]
+
+    server_ip = cl.recv_variable("server_ip", p_server).decode()    
     time_stamp = cl.recv_variable("time_stamp", p_server).decode()
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
 
     stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
-    output = "client:"  + stdout
+    output = stdout
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
-    log = "client:" + stderr
+    log = stderr
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
     return json.dumps({
         "server_ip": server_ip,
