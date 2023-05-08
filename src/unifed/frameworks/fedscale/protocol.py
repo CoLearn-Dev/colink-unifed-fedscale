@@ -40,7 +40,7 @@ def config_to_FedScale_format(origin_json_conf):
     if origin_json_conf["algorithm"] == "fedavg":
         json_conf["algorithm"] = "fed_avg"
     json_conf["model"] = origin_json_conf["model"]
-    json_conf["bench_param"] = {"mode": "local","device": "cpu"}
+    json_conf["bench_param"] = {"mode": "local","device": "gpu"}
     json_conf["training_param"] = origin_json_conf["training"]
     json_conf["data_dir"] = "~/flbenchmark.working/data"
     return json_conf
