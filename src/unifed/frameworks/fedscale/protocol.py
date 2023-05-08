@@ -331,9 +331,9 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
 
-    ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
+    # ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
-    process = subprocess.Popen(f'echo "{ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'echo "{time_stamp}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
