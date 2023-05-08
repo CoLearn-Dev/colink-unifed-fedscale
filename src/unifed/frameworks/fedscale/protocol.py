@@ -288,7 +288,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-    process = subprocess.Popen(f'source install_colink_version.sh && . ~/.bashrc && echo $FEDSCALE_HOME',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'. install_colink_version.sh && . ~/.bashrc && echo $FEDSCALE_HOME',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
@@ -329,7 +329,7 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
-    process = subprocess.Popen(f'source install_colink_version.sh && . ~/.bashrc && echo $FEDSCALE_HOME',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'. install_colink_version.sh && . ~/.bashrc && echo $FEDSCALE_HOME',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
