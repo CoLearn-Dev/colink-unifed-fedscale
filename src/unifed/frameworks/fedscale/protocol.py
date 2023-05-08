@@ -40,7 +40,7 @@ def config_to_FedScale_format(origin_json_conf):
     if origin_json_conf["algorithm"] == "fedavg":
         json_conf["algorithm"] = "fed_avg"
     json_conf["model"] = origin_json_conf["model"]
-    json_conf["bench_param"] = {"mode": "local","device": "gpu"}
+    json_conf["bench_param"] = {"mode": "local","device": "cpu"}
     json_conf["training_param"] = origin_json_conf["training"]
     json_conf["data_dir"] = "~/flbenchmark.working/data"
     return json_conf
@@ -331,9 +331,9 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     print(f"time_stamp:{time_stamp}")
     print(f"participant_id:{participant_id}")
 
-    # ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
+    ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
-    process = subprocess.Popen(f'echo "{time_stamp}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'echo "{ps_cmd}"',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
