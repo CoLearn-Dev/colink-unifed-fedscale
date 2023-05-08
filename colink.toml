@@ -6,7 +6,7 @@ description = "FedScale"
 language = "python"
 install_script = """
 
-sh install_colink_version.sh
+source install_colink_version.sh
 if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1; then
     conda env remove -n colink-protocol-unifed-fedscale
 fi
