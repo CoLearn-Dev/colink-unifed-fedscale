@@ -243,6 +243,8 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
 
     print(conf_script)
 
+
+    return conf_script
     total_gpu_processes = sum([sum(x) for x in total_gpus])
 
     # =========== Submit job to each worker ============
