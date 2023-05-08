@@ -328,12 +328,18 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     p_server = server_in_list[0]
 
-    server_ip = cl.recv_variable("server_ip", p_server).decode()    
-    time_stamp = cl.recv_variable("time_stamp", p_server).decode()
-    print(f"time_stamp:{time_stamp}")
-    print(f"participant_id:{participant_id}")
 
-    stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip)
+    process = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    stdout, stderr = process.communicate()
+    returncode = process.returncode
+
+    # server_ip = cl.recv_variable("server_ip", p_server).decode()    
+    # time_stamp = cl.recv_variable("time_stamp", p_server).decode()
+    # print(f"time_stamp:{time_stamp}")
+    # print(f"participant_id:{participant_id}")
+
+    # stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
     output = stdout
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
