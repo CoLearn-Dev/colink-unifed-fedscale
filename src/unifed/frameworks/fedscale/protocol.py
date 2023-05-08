@@ -262,18 +262,15 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
                 if rank_id == participant_id:
                     print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
                     if local:
-                        process = subprocess.Popen(f'echo "{worker_cmd}"',
-                                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        ps_cmd = worker_cmd
                     else:
-                        process = subprocess.Popen(f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"',
-                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    stdout,stderr = process.communicate()
-                    returncode = process.returncode
+                        ps_cmd = f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"'
+                    return ps_cmd
                 rank_id += 1
 
     print(f"Submitted job!")
 
-    return stdout,stderr,returncode
+    return ''
 
 
 @pop.handle("unifed.fedscale:server")
@@ -329,17 +326,17 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     p_server = server_in_list[0]
 
 
-    process = subprocess.Popen(f'ls',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    server_ip = cl.recv_variable("server_ip", p_server).decode()    
+    time_stamp = cl.recv_variable("time_stamp", p_server).decode()
+    print(f"time_stamp:{time_stamp}")
+    print(f"participant_id:{participant_id}")
+
+    ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
+
+    process = subprocess.Popen(f'{ps_cmd}',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
-
-    # server_ip = cl.recv_variable("server_ip", p_server).decode()    
-    # time_stamp = cl.recv_variable("time_stamp", p_server).decode()
-    # print(f"time_stamp:{time_stamp}")
-    # print(f"participant_id:{participant_id}")
-
-    # stdout,stderr,returncode = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
     output = stdout
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
@@ -347,7 +344,7 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
     return json.dumps({
         "server_ip": server_ip,
-        "stdout": output.decode()+server_ip,
-        "stderr": log.decode()+server_ip,
+        "stdout": output.decode(),
+        "stderr": log.decode(),
         "returncode": returncode,
     })
