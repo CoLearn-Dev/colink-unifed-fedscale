@@ -159,10 +159,11 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
     
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
+    return ps_name
 
     yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': './FedScale/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
-    return ps_name
+
     ps_ip = server_ip
     worker_ips, total_gpus = [], []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
