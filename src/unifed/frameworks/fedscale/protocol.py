@@ -156,6 +156,7 @@ def process_cmd_server(json_conf, server_ip, local=False):
     return time_stamp, ps_cmd , submit_user, setup_cmd
 
 def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=True):
+    return time_stamp
     time.sleep(10)
     ps_name = f"fedscale-aggr-{time_stamp}"
 
@@ -244,7 +245,6 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
     print(conf_script)
 
 
-    return conf_script
     total_gpu_processes = sum([sum(x) for x in total_gpus])
 
     # =========== Submit job to each worker ============
