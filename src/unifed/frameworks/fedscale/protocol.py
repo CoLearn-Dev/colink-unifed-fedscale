@@ -282,7 +282,9 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
-    process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 1136896 1136899 1150863 1150866 1156634 1156639 1157618  && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 1136896 1136899 1150863 1150866 1156634 1156639 1157618  && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
@@ -328,10 +330,12 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     ps_cmd = process_cmd_client(participant_id, Config, time_stamp, server_ip)
 
-    if participant_id == 1:
-        process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 437211 437216 437387  && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    else :
-        process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 2740895 2740898 2768498 2768504 && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # if participant_id == 1:
+    #     process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 437211 437216 437387  && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # else :
+        # process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 2740895 2740898 2768498 2768504 && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
