@@ -287,20 +287,20 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     stdout, stderr = process.communicate()
     returncode = process.returncode
 
-    output = stdout
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+    # output = stdout
+    # cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
     log = stderr
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
 
     with open("./log/0.log", "rb") as f:
         result = f.read()
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:result", result)
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", result)
 
     print('res:',result)
     
     return json.dumps({
         "server_ip": server_ip,
-        "stdout": output.decode(),
+        "stdout": result.decode(),
         "stderr": log.decode(),
         "returncode": returncode,
     })
@@ -333,13 +333,18 @@ def run_client(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     stdout, stderr = process.communicate()
     returncode = process.returncode
 
-    output = stdout
-    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
+    # output = stdout
+    # cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", output)
     log = stderr
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
+
+    with open(f"./log/{participant_id}.log", "rb") as f:
+        result = f.read()
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:output", result)
+
     return json.dumps({
         "server_ip": server_ip,
-        "stdout": output.decode(),
+        "stdout": result.decode(),
         "stderr": log.decode(),
         "returncode": returncode,
     })
