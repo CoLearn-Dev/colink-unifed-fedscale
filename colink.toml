@@ -22,8 +22,9 @@ conda activate colink-protocol-unifed-fedscale
 cd FedScale
 git checkout 0328update
 pip install -e .
-touch record_exp.txt
 cd ..
+
+touch record_exp.txt
 
 pip install --upgrade pip
 pip install flbenchmark
