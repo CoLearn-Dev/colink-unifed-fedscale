@@ -84,6 +84,7 @@ def process_cmd_server(json_conf, server_ip, local=False):
     print("process_cmd_server start")
 
     ps_ip = server_ip
+    ps_port = yaml_conf['ps_port']
     worker_ips, total_gpus = [], []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
 
@@ -101,6 +102,7 @@ def process_cmd_server(json_conf, server_ip, local=False):
 
     job_conf = {'time_stamp': time_stamp,
                 'ps_ip': ps_ip,
+                'ps_port': ps_port,
                 }
 
     for conf in yaml_conf['job_conf']:
@@ -167,6 +169,7 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip):
 
 
     ps_ip = server_ip
+    ps_port = yaml_conf['ps_port']
     worker_ips, total_gpus = [], []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
 
@@ -182,6 +185,7 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip):
 
     job_conf = {'time_stamp': time_stamp,
                 'ps_ip': ps_ip,
+                'ps_port': ps_port,
                 }
 
     for conf in yaml_conf['job_conf']:
