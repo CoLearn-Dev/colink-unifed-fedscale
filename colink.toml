@@ -6,9 +6,6 @@ description = "FedScale"
 language = "python"
 install_script = """
 
-FEDSCALE_HOME=$(pwd)/FedScale
-export FEDSCALE_HOME=$(pwd)/FedScale
-alias fedscale=\'bash ${FEDSCALE_HOME}/fedscale.sh\'
 
 if { conda env list | grep 'colink-protocol-unifed-fedscale'; } >/dev/null 2>&1; then
     conda env remove -n colink-protocol-unifed-fedscale
@@ -25,8 +22,6 @@ git checkout 0328update
 pip install -e .
 cd ..
 
-
-
 pip install --upgrade pip
 pip install flbenchmark
 pip install nest_asyncio
@@ -39,8 +34,5 @@ pip install -e .
 """
 entrypoint = """
 conda activate colink-protocol-unifed-fedscale
-FEDSCALE_HOME=$(pwd)/FedScale
-export FEDSCALE_HOME=$(pwd)/FedScale
-alias fedscale=\'bash ${FEDSCALE_HOME}/fedscale.sh\'
 unifed-fedscale > debug.txt 2>&1
 """

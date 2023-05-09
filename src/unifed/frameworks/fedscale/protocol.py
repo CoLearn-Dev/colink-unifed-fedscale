@@ -85,7 +85,6 @@ def process_cmd_server(json_conf, server_ip, local=False):
 
     ps_ip = server_ip
     worker_ips, total_gpus = [], []
-    cmd_script_list = []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
 
     executor_configs = "=".join(yaml_conf['worker_ips']).split(':')[0] + f':[{max_process}]'
@@ -289,6 +288,11 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     log = stderr
     cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:log", log)
 
+    with open("./log/0.log", "rb") as f:
+        result = f.read()
+    cl.create_entry(f"{UNIFED_TASK_DIR}:{cl.get_task_id()}:result", result)
+
+    print('res:',result)
     
     return json.dumps({
         "server_ip": server_ip,
