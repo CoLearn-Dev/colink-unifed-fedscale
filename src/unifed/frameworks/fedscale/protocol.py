@@ -19,6 +19,32 @@ from unifed.frameworks.fedscale.util import store_error, store_return, GetTempFi
 pop = CL.ProtocolOperator(__name__)
 UNIFED_TASK_DIR = "unifed:task"
 
+def load_FedScale_data(config_dataset_name):
+    out_dir_base='~/flbenchmark.working/data'
+    flbd = flbenchmark.datasets.FLBDatasets(f'{out_dir_base}')
+
+    dataset_name = ('student_horizontal','breast_horizontal','default_credit_horizontal','give_credit_horizontal','vehicle_scale_horizontal')
+
+    for x in dataset_name:
+        if config_dataset_name == x:
+            train_dataset, test_dataset = flbd.fateDatasets(x)
+            flbenchmark.datasets.convert_to_csv(train_dataset, out_dir=f'{out_dir_base}/csv_data/{x}/train')
+            if x != 'vehicle_scale_horizontal':
+                flbenchmark.datasets.convert_to_csv(test_dataset, out_dir=f'{out_dir_base}/csv_data/{x}/test')
+
+    vertical = ('breast_vertical','give_credit_vertical','default_credit_vertical')
+    for x in vertical:
+        if config_dataset_name == x:
+            my_dataset = flbd.fateDatasets(x)
+            flbenchmark.datasets.convert_to_csv(my_dataset[0], out_dir=f'{out_dir_base}/csv_data/{x}')
+            if my_dataset[1] != None:
+                flbenchmark.datasets.convert_to_csv(my_dataset[1], out_dir=f'{out_dir_base}/csv_data/{x}')
+
+    leaf = ('femnist','reddit','celeba')
+    for x in leaf:
+        if config_dataset_name == x:
+            my_dataset = flbd.leafDatasets(x)
+    
 def load_config_from_param_and_check(param: bytes):
     unifed_config = json.loads(param.decode())
     framework = unifed_config["framework"]
@@ -43,6 +69,8 @@ def config_to_FedScale_format(origin_json_conf):
     json_conf["bench_param"] = {"mode": "local","device": "gpu"}
     json_conf["training_param"] = origin_json_conf["training"]
     json_conf["data_dir"] = "~/flbenchmark.working/data"
+    
+    load_FedScale_data(json_conf["dataset"])
     return json_conf
 
 def load_json_conf(json_file):
@@ -51,7 +79,7 @@ def load_json_conf(json_file):
     return data
 
 def process_cmd_server(json_conf, server_ip, local=False):
-    yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': '$FEDSCALE_HOME/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
+    yaml_conf = {'ps_ip': '', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': '$FEDSCALE_HOME/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'job_conf': [{'job_name': ''}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': ''}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
     print("process_cmd_server start")
 
@@ -71,9 +99,6 @@ def process_cmd_server(json_conf, server_ip, local=False):
     time_stamp = datetime.datetime.fromtimestamp(
         time.time()).strftime('%m%d_%H%M%S')
     running_vms = set()
-    job_name = 'fedscale_job'
-    log_path = './logs'
-    submit_user = f"{yaml_conf['auth']['ssh_user']}@" if len(yaml_conf['auth']['ssh_user']) else ""
 
     job_conf = {'time_stamp': time_stamp,
                 'ps_ip': ps_ip,
@@ -83,14 +108,6 @@ def process_cmd_server(json_conf, server_ip, local=False):
         job_conf.update(conf)
 
     conf_script = ''
-    setup_cmd = ''
-    if yaml_conf['setup_commands'] is not None:
-        setup_cmd += (yaml_conf['setup_commands'][0] + ' && ')
-        for item in yaml_conf['setup_commands'][1:]:
-            setup_cmd += (item + ' && ')
-
-    cmd_sufix = f" "
-
 
     for conf_name in job_conf:
         if conf_name == "job_name":
@@ -130,11 +147,6 @@ def process_cmd_server(json_conf, server_ip, local=False):
             job_conf[conf_name] = (json_conf["bench_param"]["device"] == "gpu")
 
         conf_script = conf_script + f' --{conf_name}={job_conf[conf_name]}'
-        if conf_name == "job_name":
-            job_name = job_conf[conf_name]
-        if conf_name == "log_path":
-            log_path = os.path.join(
-                job_conf[conf_name], 'log', job_name, time_stamp)
 
     if json_conf['dataset'] == 'femnist':
         conf_script = conf_script + ' --temp_tag=simple_femnist'
@@ -143,26 +155,22 @@ def process_cmd_server(json_conf, server_ip, local=False):
 
     total_gpu_processes = sum([sum(x) for x in total_gpus])
 
-
     # =========== Submit job to parameter server ============
     running_vms.add(ps_ip)
     print(f"Starting aggregator on {ps_ip}...")
     ps_cmd = f" python {yaml_conf['exp_path']}/{yaml_conf['aggregator_entry']} {conf_script} --this_rank=0 --num_executors={total_gpu_processes} --executor_configs={executor_configs} "
 
-    return time_stamp, ps_cmd , submit_user, setup_cmd
+    return time_stamp, ps_cmd
 
-def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=True):
+def process_cmd_client(participant_id, json_conf, time_stamp, server_ip):
 
-    ps_name = f"fedscale-aggr-{time_stamp}"
-
-    yaml_conf = {'ps_ip': 'localhost', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': '$FEDSCALE_HOME/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'}, 'setup_commands': ['source $HOME/anaconda3/bin/activate fedscale'], 'job_conf': [{'job_name': 'BASE'}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': '~/flbenchmark.working/data/csv_data/breast_horizontal'}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
+    yaml_conf = {'ps_ip': '', 'ps_port': 29664, 'worker_ips': ['localhost:[2]'], 'exp_path': '$FEDSCALE_HOME/fedscale/cloud', 'executor_entry': 'execution/executor.py', 'aggregator_entry': 'aggregation/aggregator.py', 'auth': {'ssh_user': '', 'ssh_private_key': '~/.ssh/id_rsa'},  'job_conf': [{'job_name': ''}, {'seed': 1}, {'log_path': './benchmark'}, {'task': 'simple'}, {'num_participants': 2}, {'data_set': 'breast_horizontal'}, {'data_dir': ''}, {'model': 'logistic_regression'}, {'gradient_policy': 'fed-avg'}, {'eval_interval': 5}, {'rounds': 6}, {'filter_less': 1}, {'num_loaders': 2}, {'local_steps': 5}, {'inner_step': 1}, {'learning_rate': 0.01}, {'batch_size': 32}, {'test_bsz': 32}, {'use_cuda': False}]}
 
 
     ps_ip = server_ip
     worker_ips, total_gpus = [], []
     max_process = min(4, json_conf["training_param"]["client_per_round"])
 
-    executor_configs = "=".join(yaml_conf['worker_ips']).split(':')[0] + f':[{max_process}]'
     if 'worker_ips' in yaml_conf:
         for ip_gpu in yaml_conf['worker_ips']:
             ip, gpu_list = ip_gpu.strip().split(':')
@@ -172,7 +180,6 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
 
     running_vms = set()
     job_name = 'fedscale_job'
-    submit_user = f"{yaml_conf['auth']['ssh_user']}@" if len(yaml_conf['auth']['ssh_user']) else ""
 
     job_conf = {'time_stamp': time_stamp,
                 'ps_ip': ps_ip,
@@ -182,13 +189,6 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
         job_conf.update(conf)
 
     conf_script = ''
-    setup_cmd = ''
-    if yaml_conf['setup_commands'] is not None:
-        setup_cmd += (yaml_conf['setup_commands'][0] + ' && ')
-        for item in yaml_conf['setup_commands'][1:]:
-            setup_cmd += (item + ' && ')
-
-    cmd_sufix = f" "
 
     for conf_name in job_conf:
         if conf_name == "job_name":
@@ -228,11 +228,6 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
             job_conf[conf_name] = (json_conf["bench_param"]["device"] == "gpu")
 
         conf_script = conf_script + f' --{conf_name}={job_conf[conf_name]}'
-        if conf_name == "job_name":
-            job_name = job_conf[conf_name]
-        if conf_name == "log_path":
-            log_path = os.path.join(
-                job_conf[conf_name], 'log', job_name, time_stamp)
 
     if json_conf['dataset'] == 'femnist':
         conf_script = conf_script + ' --temp_tag=simple_femnist'
@@ -257,11 +252,7 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip, local=T
 
                 if rank_id == participant_id:
                     print(f"submitted: rank_id:{rank_id} worker_cmd:{worker_cmd}")
-                    if local:
-                        ps_cmd = worker_cmd
-                    else:
-                        ps_cmd = f'ssh {submit_user}{worker} "{setup_cmd} {worker_cmd}"'
-                    return ps_cmd
+                    return worker_cmd
                 rank_id += 1
 
     print(f"Submitted job!")
@@ -284,7 +275,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
     # run external program
     participant_id = [i for i, p in enumerate(participants) if p.user_id == cl.get_user_id()][0]
     
-    time_stamp, ps_cmd, submit_user, setup_cmd = process_cmd_server(Config, server_ip)
+    time_stamp, ps_cmd = process_cmd_server(Config, server_ip)
 
     cl.send_variable("time_stamp", json.dumps(time_stamp), [p for p in participants if p.role == "client"])
 
