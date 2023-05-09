@@ -284,7 +284,7 @@ def run_server(cl: CL.CoLink, param: bytes, participants: List[CL.Participant]):
 
     # process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 1136896 1136899 1150863 1150866 1156634 1156639 1157618  && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(f'FEDSCALE_HOME=$(pwd)/FedScale && echo $FEDSCALE_HOME && kill -9 1136896 && ps aux | grep feds',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate()
     returncode = process.returncode
