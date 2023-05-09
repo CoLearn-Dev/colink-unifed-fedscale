@@ -13,6 +13,8 @@ fi
 
 git clone https://github.com/xmhuangzhen/FedScale.git
 
+source install_colink_version.sh
+
 conda init bash
 conda env create -f environment.yml
 conda activate colink-protocol-unifed-fedscale
