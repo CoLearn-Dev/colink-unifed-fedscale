@@ -69,7 +69,7 @@ def config_to_FedScale_format(origin_json_conf):
     json_conf["bench_param"] = {"mode": "local","device": "cpu"}
     json_conf["training_param"] = origin_json_conf["training"]
     json_conf["data_dir"] = "~/flbenchmark.working/data"
-    
+
     load_FedScale_data(json_conf["dataset"])
     return json_conf
 
@@ -137,9 +137,9 @@ def process_cmd_server(json_conf, server_ip, local=False):
         elif conf_name == "eval_interval":
             job_conf[conf_name] = 1 # json_conf["training_param"]["epochs"] 
         elif conf_name == "rounds":
-            job_conf[conf_name] = json_conf["training_param"]["epochs"] + 1
+            job_conf[conf_name] = json_conf["training_param"]["global_epochs"] + 1
         elif conf_name == "inner_step":
-            job_conf[conf_name] = json_conf["training_param"]["inner_step"]
+            job_conf[conf_name] = 1
         elif conf_name == "learning_rate":
             job_conf[conf_name] = json_conf["training_param"]["learning_rate"]
         elif conf_name == "batch_size":
@@ -220,9 +220,9 @@ def process_cmd_client(participant_id, json_conf, time_stamp, server_ip):
         elif conf_name == "eval_interval":
             job_conf[conf_name] = 1 # json_conf["training_param"]["epochs"] 
         elif conf_name == "rounds":
-            job_conf[conf_name] = json_conf["training_param"]["epochs"] + 1
+            job_conf[conf_name] = json_conf["training_param"]["global_epochs"] + 1
         elif conf_name == "inner_step":
-            job_conf[conf_name] = json_conf["training_param"]["inner_step"]
+            job_conf[conf_name] = 1
         elif conf_name == "learning_rate":
             job_conf[conf_name] = json_conf["training_param"]["learning_rate"]
         elif conf_name == "batch_size":
